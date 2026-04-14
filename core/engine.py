@@ -1,32 +1,21 @@
-from colony.agents.manager import AgentManager
-from colony.memory.memory_manager import MemoryManager
-from colony.communication.bus import MessageBus
+import subprocess
+from colony.utils.config import load_config
+from colony.core.manager import run_colony
 
 
-class ColonyEngine:
-    def __init__(self):
-        self.agent_manager = AgentManager()
-        self.memory = MemoryManager()
-        self.bus = MessageBus()
-        self.running = False
+def start_debug_panel():
+    try:
+        subprocess.Popen(
+            ["x-terminal-emulator", "-e", "python3 -m colony.debug.debug_panel"]
+        )
+    except Exception:
+        print("[WARNING] Could not launch debug panel.")
 
-    def register_agent(self, agent):
-        self.agent_manager.add_agent(agent)
-        agent.attach_system(self)
 
-    def step(self):
-        """Single execution step"""
-        for agent in self.agent_manager.get_agents():
-            agent.perceive()
-            action = agent.decide()
-            agent.act(action)
+def start_colony():
+    config = load_config()
 
-    def run(self, steps=10):
-        self.running = True
-        print("[Colony] Starting engine...")
+    if config.get("debug", False):
+        start_debug_panel()
 
-        for i in range(steps):
-            print(f"[Colony] Step {i+1}")
-            self.step()
-
-        print("[Colony] Execution finished.")
+    run_colony()
